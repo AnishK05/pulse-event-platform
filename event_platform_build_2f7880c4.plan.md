@@ -112,7 +112,7 @@ API_KEYS=tenant_a:key_a,tenant_b:key_b
 processor-java/
 ├── pom.xml
 └── src/main/
-    ├── java/com/yourorg/processor/
+    ├── java/com/anishk05/processor/
     │   ├── ProcessorApplication.java
     │   ├── config/
     │   │   ├── KafkaConfig.java
@@ -214,9 +214,9 @@ Behavior change in handler:
 
 **Add operational monitoring endpoints to Java service**Files to create:
 
-- [`processor-java/src/main/java/com/yourorg/processor/api/AdminController.java`](processor-java/src/main/java/com/yourorg/processor/api/AdminController.java)
-- [`processor-java/src/main/java/com/yourorg/processor/api/DtoModels.java`](processor-java/src/main/java/com/yourorg/processor/api/DtoModels.java)
-- [`processor-java/src/main/java/com/yourorg/processor/observability/LagService.java`](processor-java/src/main/java/com/yourorg/processor/observability/LagService.java)
+- [`processor-java/src/main/java/com/anishk05/processor/api/AdminController.java`](processor-java/src/main/java/com/anishk05/processor/api/AdminController.java)
+- [`processor-java/src/main/java/com/anishk05/processor/api/DtoModels.java`](processor-java/src/main/java/com/anishk05/processor/api/DtoModels.java)
+- [`processor-java/src/main/java/com/anishk05/processor/observability/LagService.java`](processor-java/src/main/java/com/anishk05/processor/observability/LagService.java)
 
 Endpoints to implement:
 
