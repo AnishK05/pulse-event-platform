@@ -37,11 +37,11 @@ func (r *IngestRequest) Validate() error {
 
 // KafkaEventWrapper wraps the original event with ingestion metadata
 type KafkaEventWrapper struct {
-	TenantID       string                 `json:"tenant_id"`
-	ReceivedAt     string                 `json:"received_at"`
-	RequestID      string                 `json:"request_id"`
-	IdempotencyKey string                 `json:"idempotency_key"`
-	Event          IngestRequest          `json:"event"`
+	TenantID       string        `json:"tenant_id"`
+	ReceivedAt     string        `json:"received_at"`
+	RequestID      string        `json:"request_id"`
+	IdempotencyKey string        `json:"idempotency_key"`
+	Event          IngestRequest `json:"event"`
 }
 
 // IngestResponse represents the API response

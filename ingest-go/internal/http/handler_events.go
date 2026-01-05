@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/anishk05/pulse-event-platform/ingest-go/internal/config"
 	"github.com/anishk05/pulse-event-platform/ingest-go/internal/kafka"
 	"github.com/anishk05/pulse-event-platform/ingest-go/internal/redis"
+	"github.com/google/uuid"
 )
 
 // EventHandler handles event ingestion requests

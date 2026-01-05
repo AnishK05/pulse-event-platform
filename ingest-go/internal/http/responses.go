@@ -10,11 +10,11 @@ import (
 type ErrorCode string
 
 const (
-	ErrorCodeValidation    ErrorCode = "VALIDATION_ERROR"
-	ErrorCodeUnauthorized  ErrorCode = "UNAUTHORIZED"
-	ErrorCodeRateLimited   ErrorCode = "RATE_LIMITED"
-	ErrorCodeInternal      ErrorCode = "INTERNAL_ERROR"
-	ErrorCodeBadRequest    ErrorCode = "BAD_REQUEST"
+	ErrorCodeValidation   ErrorCode = "VALIDATION_ERROR"
+	ErrorCodeUnauthorized ErrorCode = "UNAUTHORIZED"
+	ErrorCodeRateLimited  ErrorCode = "RATE_LIMITED"
+	ErrorCodeInternal     ErrorCode = "INTERNAL_ERROR"
+	ErrorCodeBadRequest   ErrorCode = "BAD_REQUEST"
 )
 
 // ErrorResponse represents a standardized error response
