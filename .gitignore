@@ -1,0 +1,71 @@
+# General
+.DS_Store
+*.log
+*.swp
+*.swo
+*~
+
+# Go
+ingest-go/vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Java
+processor-java/target/
+processor-java/.mvn/
+processor-java/mvnw
+processor-java/mvnw.cmd
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Node / React
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
+dashboard/build/
+dashboard/.env*.local
+dashboard/npm-debug.log*
+dashboard/yarn-debug.log*
+dashboard/yarn-error.log*
+
+# Python
+loadgen/__pycache__/
+loadgen/*.py[cod]
+loadgen/*$py.class
+loadgen/.Python
+loadgen/venv/
+loadgen/env/
+loadgen/.venv/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# Docker
+infra/.env
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+tmp/
+temp/
+
+
+
