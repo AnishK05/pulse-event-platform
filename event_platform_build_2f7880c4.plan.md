@@ -48,8 +48,6 @@ flowchart TD
     LoadGen[Python Load Generator] -->|Simulate Traffic| GoIngest
 ```
 
-
-
 ## Implementation Steps
 
 ### Step 1: Infrastructure Setup (Docker Compose)
