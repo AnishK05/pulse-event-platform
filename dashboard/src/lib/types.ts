@@ -1,6 +1,6 @@
 export interface OverviewData {
-  eventsLastMinute: number
   eventsLast5Minutes: number
+  eventsLast30Minutes: number
   topEventType: string
   status: string
   recentEvents?: EventDetail[]
