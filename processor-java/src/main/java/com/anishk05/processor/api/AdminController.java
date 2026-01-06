@@ -26,11 +26,11 @@ public class AdminController {
     @GetMapping("/overview")
     public ResponseEntity<OverviewResponse> getOverview() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime oneMinuteAgo = now.minusMinutes(1);
         LocalDateTime fiveMinutesAgo = now.minusMinutes(5);
+        LocalDateTime thirtyMinutesAgo = now.minusMinutes(30);
 
-        long eventsLastMinute = eventRepository.countEventsSince(oneMinuteAgo);
         long eventsLast5Minutes = eventRepository.countEventsSince(fiveMinutesAgo);
+        long eventsLast30Minutes = eventRepository.countEventsSince(thirtyMinutesAgo);
         
         List<Object[]> topEventTypes = eventRepository.countEventTypesSince(now.minusHours(24));
         String topEventType = "none";
@@ -45,8 +45,8 @@ public class AdminController {
                 .toList();
 
         OverviewResponse response = OverviewResponse.builder()
-                .eventsLastMinute(eventsLastMinute)
                 .eventsLast5Minutes(eventsLast5Minutes)
+                .eventsLast30Minutes(eventsLast30Minutes)
                 .topEventType(topEventType)
                 .status("healthy")
                 .recentEvents(recentEvents)

@@ -14,8 +14,8 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 class OverviewResponse {
-    private long eventsLastMinute;
     private long eventsLast5Minutes;
+    private long eventsLast30Minutes;
     private String topEventType;
     private String status;
     private List<EventDto> recentEvents;
