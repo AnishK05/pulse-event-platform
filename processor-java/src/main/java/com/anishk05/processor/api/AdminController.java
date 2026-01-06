@@ -5,6 +5,7 @@ import com.anishk05.processor.db.EventRepository;
 import com.anishk05.processor.observability.LagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,11 +38,18 @@ public class AdminController {
             topEventType = (String) topEventTypes.get(0)[0];
         }
 
+        // Fetch recent events
+        List<EventEntity> recentEventEntities = eventRepository.findRecentEventsByReceivedAt(PageRequest.of(0, 20));
+        List<EventDto> recentEvents = recentEventEntities.stream()
+                .map(this::toEventDto)
+                .toList();
+
         OverviewResponse response = OverviewResponse.builder()
                 .eventsLastMinute(eventsLastMinute)
                 .eventsLast5Minutes(eventsLast5Minutes)
                 .topEventType(topEventType)
                 .status("healthy")
+                .recentEvents(recentEvents)
                 .build();
 
         return ResponseEntity.ok(response);

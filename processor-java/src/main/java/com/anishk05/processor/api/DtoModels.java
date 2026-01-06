@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 // Overview Response
@@ -17,6 +18,7 @@ class OverviewResponse {
     private long eventsLast5Minutes;
     private String topEventType;
     private String status;
+    private List<EventDto> recentEvents;
 }
 
 // Event Type Count
