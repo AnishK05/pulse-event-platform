@@ -1,0 +1,35 @@
+Steps to Run:
+
+1. In infra/: docker compose up -d
+2. In ingest-go/: go run ./cmd/ingest
+3. In processor-java (IntelliJ): click play
+4. In dashboard: npm run dev
+5. In loadgen (to simulate python script): python loadgen.py
+
+Helpful Commands:
+
+Docker:
+    docker compose ps --> see all running containers
+    docker exec -it ep_kafka /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic events.raw --from-beginning --> see all valid messages for Kafka
+    ep_redis container --> go to exec tab, type redis-cli (to enter redis), KEYS * (to see all the keys), TTL idem:tenant_a:key_a (to see TTL left on key pair), exit (to close redis-cli)
+    ep_postgres container --> go to exec tab, type psql -U ep_user -d event_platform (to enter psql), \dt (to see tables), SELECT COUNT(*) FROM events; (to see number of events), SELECT * FROM events ORDER BY processed_at DESC LIMIT 10; (to see events), \q (to exit psql)
+
+Postman:
+    GET for http://localhost:8080/health
+    POST for http://localhost:8080/events
+    Attach Header and Body on /events.
+        Header needs to have Content-Type, X-API-Key, and Idempotency-Key.
+        Body:
+            {
+                "event_id": "evt-001",
+                "event_type": "demo.test",
+                "schema_version": 1,
+                "occurred_at": "2026-01-05T18:00:00Z",
+                "payload": {
+                    "hello": "world",
+                    "n": 123
+                }
+            }
+
+IntelliJ:
+    If Spring Boot application failing to run, Maven --> Event Processor --> Lifecycle --> clean --> click play
