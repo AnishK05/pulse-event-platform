@@ -28,7 +28,7 @@ Pulse is an internal developer platform for event ingestion and processing that 
          │
          ▼ POST /events (HTTP/JSON)
 ┌─────────────────────────────────┐
-│   Go Ingestion Service :8080    │
+│   Go Ingestion Service          │
 │  ┌───────────┐   ┌────────────┐ │
 │  │ Auth      │   │ Rate Limit │ │
 │  │ Middleware│   │ Middleware │ │
@@ -49,7 +49,7 @@ Pulse is an internal developer platform for event ingestion and processing that 
          │
          ▼ Consume
 ┌─────────────────────────────────┐
-│ Java Processor Service :8081    │
+│ Java Processor Service          │
 │  ┌───────────┐   ┌────────────┐ │
 │  │ Validation│   │ Enrichment │ │
 │  │ Pipeline  │   │ Pipeline   │ │
@@ -62,15 +62,14 @@ Pulse is an internal developer platform for event ingestion and processing that 
      │       │
      ▼       ▼
 ┌──────┐  ┌─────────────────────┐
-│ PG   │  │ Kafka: events.dlq   │
-│ :5432│  │  (3 partitions)     │
+│ Post │  │ Kafka: events.dlq   │
+│ -gres   │   (3 partitions)    │
 └──────┘  └─────────────────────┘
      │              │
      └──────┬───────┘
             ▼
     ┌────────────────┐
     │ React Dashboard│
-    │     :3000      │
     └────────────────┘
 ```
 
@@ -157,9 +156,3 @@ Based on the current architecture and configuration:
 - **Configured Rate Limits**: 300 events/min/tenant × 10 tenants = 3,000 events/min = **4.3M events/day**
 - **System Capacity**: 10,000 events/sec × 86,400 sec = **864M events/day**
 - **With 3-Node Cluster**: 40,000 events/sec sustained = **3.4B events/day**
-
-#### **Storage Requirements**
-- Average event size: 2 KB (JSON payload + metadata)
-- 1M events/day = 2 GB/day = 60 GB/month
-- 100M events/day = 200 GB/day = 6 TB/month
-- PostgreSQL partitioning by date recommended beyond 100M events/day
