@@ -2,75 +2,71 @@
 
 A production-grade event ingestion and processing platform designed to handle high-throughput event streams with enterprise features including rate limiting, idempotency guarantees, dead-letter queuing, and real-time observability.
 
+**Built for Internal Teams**: Pulse serves as an internal developer platform that engineering teams within a company can use to capture, process, and analyze event streams from their applications. Teams simply integrate with the HTTP ingestion API using their assigned API keys, and the platform handles the complexity of reliable event processing, storage, and observability—allowing developers to focus on their core product features rather than building data infrastructure.
+
 ![Dashboard Overview](resources/dashboard.png)
 
 ## Overview
 
-Pulse is an internal developer platform for event ingestion and processing. The platform ingests events via a high-performance HTTP API, processes them through a streaming pipeline, and provides operational visibility through a real-time admin dashboard.
+Pulse is a multi-tenant event streaming platform that ingests events via a high-performance HTTP API, processes them through a fault-tolerant pipeline, and provides operational visibility through a real-time admin dashboard. It's designed to be deployed within a company's infrastructure to serve multiple internal teams and applications.
 
-**Key Capabilities:**
-- High-throughput event ingestion with sub-100ms latency
-- Per-tenant rate limiting and API key authentication
-- Idempotency guarantees preventing duplicate processing
-- Fault-tolerant processing with automatic dead-letter queue (DLQ) routing
-- Real-time observability and event search capabilities
-- Horizontal scalability through Kafka partitioning
+**Key Features:**
+- **High-throughput event ingestion** with sub-100ms latency and horizontal scalability
+- **API key authentication** for multi-tenant isolation with per-tenant rate limiting (300 req/min default)
+- **Idempotency guarantees** preventing duplicate processing via client-provided idempotency keys
+- **Dead-letter queue (DLQ)** for automatic routing of failed events with enriched error context
+- **Real-time observability** with event search, Kafka lag monitoring, and DLQ inspection dashboard
+- **Load testing utilities** via Python script that simulates multi-tenant traffic, duplicates, and malformed events
+- **Containerized infrastructure** using Docker for local development and testing environments
 
 ## Architecture
 
 ### System Design
 
-```
-┌─────────────────┐
-│ Event Producers │
-│  (API Clients)  │
-└────────┬────────┘
-         │
-         ▼ POST /events (HTTP/JSON)
-┌─────────────────────────────────┐
-│   Go Ingestion Service          │
-│  ┌───────────┐   ┌────────────┐ │
-│  │ Auth      │   │ Rate Limit │ │
-│  │ Middleware│   │ Middleware │ │
-│  └───────────┘   └────────────┘ │
-│  ┌──────────────────────────┐   │
-│  │  Idempotency Check       │   │
-│  │  (Redis SETNX)           │   │
-│  └──────────────────────────┘   │
-└────────┬────────────────────────┘
-         │
-         ▼ Publish
-┌─────────────────────────────────┐
-│    Apache Kafka (KRaft Mode)    │
-│  ┌─────────────────────────┐    │
-│  │ events.raw (6 partitions)│   │
-│  └─────────────────────────┘    │
-└────────┬────────────────────────┘
-         │
-         ▼ Consume
-┌─────────────────────────────────┐
-│ Java Processor Service          │
-│  ┌───────────┐   ┌────────────┐ │
-│  │ Validation│   │ Enrichment │ │
-│  │ Pipeline  │   │ Pipeline   │ │
-│  └─────┬─────┘   └────────────┘ │
-│        │                        │
-│    ┌───┴───┐                    │
-│    │       │                    │
-│  Valid   Invalid                │
-└────┬───────┬────────────────────┘
-     │       │
-     ▼       ▼
-┌──────┐  ┌─────────────────────┐
-│ Post │  │ Kafka: events.dlq   │
-│ -gres   │   (3 partitions)    │
-└──────┘  └─────────────────────┘
-     │              │
-     └──────┬───────┘
-            ▼
-    ┌────────────────┐
-    │ React Dashboard│
-    └────────────────┘
+```mermaid
+flowchart TB
+    Producers[Event Producers<br/>API Clients]
+    
+    subgraph Ingest["Go Ingestion Service :8080"]
+        Auth[Auth Middleware<br/>X-API-Key]
+        RateLimit[Rate Limit Middleware<br/>300 req/min/tenant]
+        Idempotency[Idempotency Check<br/>Redis SETNX]
+        
+        Auth --> RateLimit --> Idempotency
+    end
+    
+    subgraph Kafka["Apache Kafka (KRaft Mode)"]
+        RawTopic[events.raw<br/>6 partitions]
+        DLQTopic[events.dlq<br/>3 partitions]
+    end
+    
+    subgraph Processor["Java Processor Service"]
+        Validation[Validation Pipeline]
+        Enrichment[Enrichment Pipeline]
+        
+        Validation --> Enrichment
+    end
+    
+    Redis[(Redis 7<br/>Rate Limiting &<br/>Idempotency)]
+    Postgres[(PostgreSQL 16<br/>Event Storage<br/>JSONB Payloads)]
+    Dashboard[Next.js Dashboard<br/>Real-time Metrics]
+    
+    Producers -->|POST /events| Auth
+    Idempotency <-->|SETNX/GET| Redis
+    RateLimit <-->|INCR| Redis
+    Ingest -->|Publish| RawTopic
+    RawTopic -->|Consume| Validation
+    Enrichment -->|Valid Events| Postgres
+    Enrichment -->|Invalid Events| DLQTopic
+    Postgres -->|Query| Dashboard
+    DLQTopic -->|Query| Dashboard
+    
+    style Ingest fill:#e1f5ff
+    style Kafka fill:#fff4e1
+    style Processor fill:#e8f5e9
+    style Redis fill:#ffebee
+    style Postgres fill:#f3e5f5
+    style Dashboard fill:#fce4ec
 ```
 
 ### Data Flow
@@ -80,6 +76,8 @@ Pulse is an internal developer platform for event ingestion and processing. The 
 3. **Processing Layer** (Java): Validates schema, enriches metadata, persists to PostgreSQL, routes failures to DLQ
 4. **Storage Layer** (PostgreSQL): Indexed event storage with JSONB payloads for flexible querying
 5. **Observability Layer** (React): Real-time metrics, event search, DLQ inspection, and Kafka lag monitoring
+6. **Infrastructure Layer** (Docker): Orchestrates PostgreSQL, Redis, and Kafka containers (`ep_postgres`, `ep_redis`, `ep_kafka`) with health checks, volume persistence, and network isolation
+7. **Load Testing** (Python): Simulates multi-tenant event producers with configurable RPS, duplicate detection testing, malformed event generation, and comprehensive latency reporting
 
 ## Technology Stack
 
@@ -94,38 +92,38 @@ Pulse is an internal developer platform for event ingestion and processing. The 
 | **Load Testing** | Python | Python script simulates load generation for performance validation |
 | **Infrastructure** | Docker | Local orchestration simulating production environments |
 
-## Key Features
+## How It Works
 
-### 1. API Key Authentication
-Multi-tenant isolation with configurable API keys mapped to tenant IDs. Middleware extracts `X-API-Key` header and enriches events with tenant context.
+### Security & Multi-Tenancy
+**API Key Authentication**: Each tenant receives a unique API key for secure access. The Go ingestion service extracts the `X-API-Key` header via middleware and enriches all events with tenant context, ensuring complete isolation between teams.
 
-### 2. Rate Limiting (Redis)
-Per-tenant sliding window rate limiting using Redis INCR with TTL. Default: 300 requests/minute per tenant. Returns HTTP 429 when exceeded.
+**Rate Limiting**: Per-tenant sliding window rate limiting (default: 300 req/min) prevents individual teams from overwhelming the system. Implemented using Redis `INCR` commands with TTL-based buckets (`rl:{tenant_id}:{minute_bucket}`). Returns HTTP 429 when limits are exceeded.
 
-**Redis Key Pattern**: `rl:{tenant_id}:{minute_bucket}`
+### Reliability & Data Integrity
+**Idempotency Guarantees**: Clients provide an `Idempotency-Key` header to prevent duplicate processing during retries. The ingestion service uses Redis `SETNX` with a 30-minute TTL (`idem:{tenant_id}:{idempotency_key}`) to ensure at-most-once delivery semantics.
 
-### 3. Idempotency Guarantees
-Client-provided `Idempotency-Key` header prevents duplicate processing. Redis SETNX with 30-minute TTL ensures at-most-once delivery.
+**Dead-Letter Queue**: Events that fail validation (missing required fields, schema errors) are automatically routed to the `events.dlq` Kafka topic with enriched error context. This allows teams to debug issues without losing data, and supports manual reprocessing workflows.
 
-**Redis Key Pattern**: `idem:{tenant_id}:{idempotency_key}`
+### Observability & Monitoring
+The Next.js admin dashboard provides four specialized views for operational visibility:
 
-### 4. Dead-Letter Queue (DLQ)
-Failed events (schema validation errors, missing fields) are automatically routed to `events.dlq` topic with enriched error context for manual review.
+- **Overview**: Real-time metrics showing events per minute, top event types, total volume, and system health indicators
+- **Pipeline**: Kafka consumer lag monitoring, throughput visualization, and processor health status
+- **DLQ**: Failed event inspection with expandable JSON payloads, error reasons, and filtering capabilities  
+- **Search**: Query interface for debugging specific events by `event_id` or `idempotency_key`
 
-### 5. Event Search & Observability
-Admin API provides:
-- Search by `event_id` or `idempotency_key`
-- Top event types by volume
-- Events per minute (last 1m, 5m, 1h)
-- Kafka consumer lag monitoring
-- DLQ sample inspection
+The Java processor exposes REST endpoints for programmatic access to metrics, including time-windowed event counts (1m/5m/1h) and DLQ sampling.
 
-### 6. Real-Time Dashboard
-Next.js dashboard with four views:
-- **Overview**: Live metrics, event volume trends, system health
-- **Pipeline**: Kafka lag, throughput charts, processor status
-- **DLQ**: Failed events with expandable payloads and error reasons
-- **Search**: Query interface for event debugging
+### Development & Testing
+
+**Docker Infrastructure**: The platform uses Docker Compose for local development with three core containers:
+- `ep_postgres`: PostgreSQL 16 with JSONB support and persistent volumes
+- `ep_redis`: Redis 7 with AOF persistence for rate limiting and idempotency
+- `ep_kafka`: Apache Kafka 4.1 in KRaft mode (no Zookeeper required) with automated topic initialization
+
+All containers include health checks to ensure proper startup ordering and simulate production-like environments.
+
+**Load Testing**: The Python-based load generator (`loadgen/loadgen.py`) simulates realistic production scenarios with configurable RPS, multi-tenant traffic distribution, deliberate duplicate injection (to test idempotency), malformed event generation (to test DLQ routing), and comprehensive latency reporting (P50/P95/P99).
 
 ## Performance & Scale
 
