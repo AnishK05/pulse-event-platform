@@ -12,7 +12,7 @@ Pulse is a multi-tenant event streaming platform that ingests events via a high-
 
 **Key Features:**
 - **High-throughput event ingestion** with sub-100ms latency and horizontal scalability
-- **API key authentication** for multi-tenant isolation with per-tenant rate limiting (300 req/min default)
+- **API key authentication** for multi-tenant isolation with per-tenant rate limiting
 - **Idempotency guarantees** preventing duplicate processing via client-provided idempotency keys
 - **Dead-letter queue (DLQ)** for automatic routing of failed events with enriched error context
 - **Real-time observability** with event search, Kafka lag monitoring, and DLQ inspection dashboard
@@ -56,7 +56,7 @@ flowchart TD
     subgraph Ingest["Go Ingestion Service"]
         direction TB
         Auth[Auth Middleware<br/>X-API-Key]:::ingest
-        RateLimit[Rate Limit Middleware<br/>300 req/min/tenant]:::ingest
+        RateLimit[Rate Limit Middleware<br/>]:::ingest
         Idempotency[Idempotency Check<br/>Redis SETNX]:::ingest
         
         Auth --> RateLimit --> Idempotency
@@ -144,14 +144,14 @@ The Next.js admin dashboard provides four specialized views for operational visi
 - **DLQ**: Failed event inspection with expandable JSON payloads, error reasons, and filtering capabilities  
 - **Search**: Query interface for debugging specific events by `event_id` or `idempotency_key`
 
-The Java processor exposes REST endpoints for programmatic access to metrics, including time-windowed event counts (1m/5m/1h) and DLQ sampling.
+The Java processor exposes REST endpoints for programmatic access to metrics, including time-windowed event counts (5m/30m) and DLQ sampling.
 
 ### Development & Testing
 
 **Docker Infrastructure**: The platform uses Docker Compose for local development with three core containers:
 - `ep_postgres`: PostgreSQL 16 with JSONB support and persistent volumes
 - `ep_redis`: Redis 7 with AOF persistence for rate limiting and idempotency
-- `ep_kafka`: Apache Kafka 4.1 in KRaft mode (no Zookeeper required) with automated topic initialization
+- `ep_kafka`: Apache Kafka 4.1 in KRaft mode (no Zookeeper required) with manual topic initialization
 
 All containers include health checks to ensure proper startup ordering and simulate production-like environments.
 
