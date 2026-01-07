@@ -19,6 +19,8 @@ Pulse is a multi-tenant event streaming platform that ingests events via a high-
 - **Load testing utilities** via Python script that simulates multi-tenant traffic, duplicates, and malformed events
 - **Containerized infrastructure** using Docker for local development and testing environments
 
+**Set-Up:** To run this yourself, see [resources/info.txt](resources/info.txt)
+
 ## Architecture
 
 ### System Design
