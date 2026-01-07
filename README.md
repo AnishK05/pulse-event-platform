@@ -6,7 +6,7 @@ A production-grade event ingestion and processing platform designed to handle hi
 
 ## Overview
 
-Pulse is an internal developer platform for event ingestion and processing that demonstrates the ability to work with modern distributed systems and legacy infrastructure patterns. The platform ingests events via a high-performance HTTP API, processes them through a streaming pipeline, and provides operational visibility through a real-time admin dashboard.
+Pulse is an internal developer platform for event ingestion and processing. The platform ingests events via a high-performance HTTP API, processes them through a streaming pipeline, and provides operational visibility through a real-time admin dashboard.
 
 **Key Capabilities:**
 - High-throughput event ingestion with sub-100ms latency
@@ -91,7 +91,7 @@ Pulse is an internal developer platform for event ingestion and processing that 
 | **Cache Layer** | Redis 7 | In-memory store for rate limiting and idempotency tracking |
 | **Primary Database** | PostgreSQL 16 | ACID-compliant storage with JSONB support and indexing |
 | **Admin Dashboard** | Next.js, React, Tailwind CSS, Recharts | Server-side rendered dashboard with real-time data fetching |
-| **Load Testing** | Python | Concurrent load generation for performance validation |
+| **Load Testing** | Python | Python script simulates load generation for performance validation |
 | **Infrastructure** | Docker | Local orchestration simulating production environments |
 
 ## Key Features
