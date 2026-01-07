@@ -24,49 +24,81 @@ Pulse is a multi-tenant event streaming platform that ingests events via a high-
 ### System Design
 
 ```mermaid
-flowchart TB
-    Producers[Event Producers<br/>API Clients]
+flowchart TD
+    %% --- GLOBAL STYLING ---
+    %% All text colors forced to #000 (Black)
+
+    %% 1. Source Layer (Grey)
+    classDef source fill:#ECEFF1,stroke:#546E7A,stroke-width:2px,color:#000
     
-    subgraph Ingest["Go Ingestion Service :8080"]
-        Auth[Auth Middleware<br/>X-API-Key]
-        RateLimit[Rate Limit Middleware<br/>300 req/min/tenant]
-        Idempotency[Idempotency Check<br/>Redis SETNX]
+    %% 2. Ingestion Compute Layer (Blue)
+    classDef ingest fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+    style Ingest fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,color:#000
+
+    %% 3. Infrastructure/Queuing Layer (Amber)
+    classDef infra fill:#FFF8E1,stroke:#FF8F00,stroke-width:2px,color:#000
+    style Kafka fill:#FFF8E1,stroke:#FF8F00,stroke-width:2px,color:#000
+
+    %% 4. Processing Compute Layer (Purple)
+    classDef process fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+    style Processor fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000
+
+    %% 5. Persistence Layer (Green)
+    classDef db fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000
+
+    %% 6. Presentation Layer (Pink)
+    classDef view fill:#FCE4EC,stroke:#C2185B,stroke-width:2px,color:#000
+
+    %% --- NODES & SUBGRAPHS ---
+    
+    Producers[Event Producers<br/>API Clients]:::source
+
+    subgraph Ingest["Go Ingestion Service"]
+        direction TB
+        Auth[Auth Middleware<br/>X-API-Key]:::ingest
+        RateLimit[Rate Limit Middleware<br/>300 req/min/tenant]:::ingest
+        Idempotency[Idempotency Check<br/>Redis SETNX]:::ingest
         
         Auth --> RateLimit --> Idempotency
     end
     
+    Redis[(Redis 7<br/>Rate Limiting &<br/>Idempotency)]:::infra
+
     subgraph Kafka["Apache Kafka (KRaft Mode)"]
-        RawTopic[events.raw<br/>6 partitions]
-        DLQTopic[events.dlq<br/>3 partitions]
+        direction TB
+        RawTopic[events.raw<br/>6 partitions]:::infra
+        DLQTopic[events.dlq<br/>3 partitions]:::infra
     end
     
     subgraph Processor["Java Processor Service"]
-        Validation[Validation Pipeline]
-        Enrichment[Enrichment Pipeline]
+        direction TB
+        Validation[Validation Pipeline]:::process
+        Enrichment[Enrichment Pipeline]:::process
         
         Validation --> Enrichment
     end
     
-    Redis[(Redis 7<br/>Rate Limiting &<br/>Idempotency)]
-    Postgres[(PostgreSQL 16<br/>Event Storage<br/>JSONB Payloads)]
-    Dashboard[Next.js Dashboard<br/>Real-time Metrics]
+    Postgres[(PostgreSQL 16<br/>Event Storage<br/>JSONB Payloads)]:::db
+    Dashboard[Next.js Dashboard<br/>Real-time Metrics]:::view
     
+    %% --- CONNECTIONS ---
     Producers -->|POST /events| Auth
-    Idempotency <-->|SETNX/GET| Redis
+    
+    %% Redis Interactions
     RateLimit <-->|INCR| Redis
-    Ingest -->|Publish| RawTopic
+    Idempotency <-->|SETNX/GET| Redis
+    
+    %% Messaging Flow
+    Idempotency -->|Publish| RawTopic
     RawTopic -->|Consume| Validation
+    
+    %% Processing Flow
     Enrichment -->|Valid Events| Postgres
     Enrichment -->|Invalid Events| DLQTopic
+    
+    %% Dashboard Data Source
     Postgres -->|Query| Dashboard
     DLQTopic -->|Query| Dashboard
-    
-    style Ingest fill:#e1f5ff
-    style Kafka fill:#fff4e1
-    style Processor fill:#e8f5e9
-    style Redis fill:#ffebee
-    style Postgres fill:#f3e5f5
-    style Dashboard fill:#fce4ec
 ```
 
 ### Data Flow
