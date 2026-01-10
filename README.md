@@ -187,4 +187,4 @@ Based on the current architecture and configuration:
 #### **Daily Event Volume Estimates**
 - **Configured Rate Limits**: 300 events/min/tenant × 10 tenants = 3,000 events/min = **4.3M events/day**
 - **System Capacity**: 10,000 events/sec × 86,400 sec = **864M events/day**
-- **With 3-Node Cluster**: 40,000 events/sec sustained = **3.4B events/day**
+- **With 3-Node Cluster**: 40,000 events/sec sustained = **3.4B events/day** 
